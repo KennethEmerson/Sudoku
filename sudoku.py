@@ -22,7 +22,7 @@ class NoNumpyArrayError(Error):
 class ArraySizeError(Error):
    pass
 class ArrayContentError(Error):
-    pass
+   pass
 
 class Sudoku:
     def __init__(self,input):   
@@ -31,15 +31,20 @@ class Sudoku:
         try:
             if not isinstance(input,np.ndarray):                # is input an numpy array
                 raise NoNumpyArrayError
-            if (len(input)!=len(input[0])):                     # is input a squared array
+                
+            elif (len(input)!=len(input[0])):                     # is input a squared array
                 raise ArraySizeError
-            if not math.sqrt(len(input)).is_integer():          # does input contain square boxes
+                
+            elif not math.sqrt(len(input)).is_integer():          # does input contain square boxes
                 raise ArraySizeError
-            if not np.all(input >= 0):                          # all inputs must be zero or higher
+                
+            elif not np.all(input >= 0):                          # all inputs must be zero or higher
                 raise ArrayContentError
-            if not np.all(input <= len(input)):                 # all inputs must be lower than max value
+                
+            elif not np.all(input <= len(input)):                 # all inputs must be lower than max value
                 raise ArrayContentError
-            if not issubclass(input.dtype.type, np.integer):    #
+                
+            elif not issubclass(input.dtype.type, np.integer):    #
                 raise ArrayContentError
 
         except NoNumpyArrayError:
@@ -47,10 +52,11 @@ class Sudoku:
         except ArraySizeError:
             sys.exit("error: Input is not correct size")
         except ArrayContentError:
-            sys.exit("error: Elements in iput are negative or non-integer") 
+            sys.exit("error: Elements in input are negative or non-integer") 
         
         # various variables for the sudoku
         self.original = input                                       # stores the original sudoku                              
+        self.backtrack_counter = 0                                  # storesthe amount of backtracks during search
         self.original_mask = (self.original != 0)                   # stores the mask for the original sudoku
         self.values = input                                         # stores the actual sudoku (solution)
         self.total_rows = len(self.values)                          # stores the total amount of rows
@@ -108,7 +114,7 @@ class Sudoku:
                         is_column_correct = False
         return is_column_correct
     
-    # checks if the given bow contains every digit only once (zeros are ignored)
+    # checks if the given box contains every digit only once (zeros are ignored)
     def check_one_box(self,matr):
         is_box_correct = True
         checklist = list(self.potential_values)
@@ -155,7 +161,7 @@ class Sudoku:
     # the backtrack will continue if no solution was found
     
     def find_solution(self,max_attempts=200):
-        backtrack_counter = 0       # counts the amount of backtracks executed
+        self.backtrack_counter = 0       # counts the amount of backtracks executed
         self.actual_index = 0       # sets the actual index of the sudoku to zero
         index_direction = 1         # two possible values 1 for the next cell, -1 to go to the previous cell 
         
@@ -166,7 +172,7 @@ class Sudoku:
        #  - the max of attempts/backtracks is reached
         while (self.check_all_filled()== False and 
                self.actual_index <= self.total_cells and
-               backtrack_counter < max_attempts):
+               self.backtrack_counter < max_attempts):
             
             # checks if cell is not part of the original sudoku
             if not(self.original_mask[self.actual_row(),self.actual_column()]):                                   
@@ -192,7 +198,7 @@ class Sudoku:
                 if self.check_solution() == False or nine_reached :
                     self.values[self.actual_row(),self.actual_column()]=0 # zet terug op nul
                     index_direction = -1 
-                    backtrack_counter += 1
+                    self.backtrack_counter += 1
                 
 
                 if (self.check_solution()==True and not nine_reached and
@@ -202,32 +208,29 @@ class Sudoku:
             self.actual_index=self.actual_index+index_direction
       
         self.actual_index = 0
+        
+    def print_solution(self):
         print("All cells filled: {0}".format(self.check_all_filled()))
         print("Solution found: {0}".format(self.check_solution()))
-        print("number of backtracks: {0}".format(backtrack_counter))
+        print("number of backtracks: {0}".format(self.backtrack_counter))
         self.print_values()
 
 
 ###################################################################################
-#  test of 2 sudokus
+#  test of sudoku
 ###################################################################################
 
-sudoku9x9 = np.array([[0,0,3,1,8,0,7,0,9],
-                      [4,0,7,0,3,0,0,6,8],
-                      [0,0,0,2,0,4,0,0,3],
-                      [1,0,0,7,0,0,0,0,5],
-                      [8,0,0,0,2,0,0,0,7],
-                      [7,0,0,0,0,8,0,0,4],
-                      [2,0,0,5,0,3,0,0,0],
-                      [3,8,0,0,4,0,9,0,2],
-                      [9,0,5,0,1,2,3,0,0]])
+if __name__ == '__main__':
+    sudoku9x9 = np.array([[0,0,3,1,8,0,7,0,9],
+                        [4,0,7,0,3,0,0,6,8],
+                        [0,0,0,2,0,4,0,0,3],
+                        [1,0,0,7,0,0,0,0,5],
+                        [8,0,0,0,2,0,0,0,7],
+                        [7,0,0,0,0,8,0,0,4],
+                        [2,0,0,5,0,3,0,0,0],
+                        [3,8,0,0,4,0,9,0,2],
+                        [9,0,5,0,1,2,3,0,0]])
 
-sudoku4x4 = np.array([[0,0,1,0],
-                      [1,0,0,4],
-                      [3,0,0,2],
-                      [0,2,0,0]])
-
-test = Sudoku(sudoku9x9)
-test.find_solution(200)
-test2 = Sudoku(sudoku4x4)
-test2.find_solution(50)
+    test = Sudoku(sudoku9x9)
+    test.find_solution(200)
+    test.print_solution()

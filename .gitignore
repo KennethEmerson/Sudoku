@@ -1,6 +1,5 @@
-# Sudoku gitignore
-# K.Emerson 2019
-# ----------------
+*
 
-# virtual env
-sudoku_env/
+!*.py
+!README.md
+!requirements.txt
